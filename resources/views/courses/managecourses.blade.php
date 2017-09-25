@@ -2,6 +2,7 @@
 @section('content')
 @include('popup.academic')
 @include('popup.program')
+@include('popup.level')
     <div class="row">
         <div class="col-lg-12">
             <h3 class="page-header"><i class="fa fa-file-text-o"></i>Courses</h3>
@@ -18,7 +19,7 @@
                 <header class="panel-heading">
                     Manage course
                 </header>
-                <form class="form-horizontal">
+                <form class="form-horizontal" id="frm-create-course">
 
                     <div class="panel-body" style="border-bottom: 1px solid">
                         <div class="form-group">
@@ -58,7 +59,7 @@
 
                                     </select>
                                     <div class="input-group-addon">
-                                        <span class="fa fa-plus"></span>
+                                        <span class="fa fa-plus" id="add-level"></span>
                                     </div>
                                 </div>
                             </div>
@@ -148,7 +149,6 @@
         </div>
     </div>
 @endsection
-
 @section('script')
     <script type="text/javascript">
         var user_id = $('input#user_id').val();
@@ -156,6 +156,29 @@
             changeMonth: true,
             changeYear: true
         });
+
+        $('#frm-create-course #programs').on('change',function(){
+            var program_id = $(this).val();
+            var level = $('#level');
+            $(level).empty();
+            $.ajax({
+                type: "GET",
+                url:'/manage/courses/showlevel',
+                data: {
+                    program_id: program_id
+                },
+                success: function(data) {
+                    console.log(data);
+                    $.each(data,function(i,l){
+                        $(level).append($("<option/>",{
+                            value: l.id,
+                            text: l.name
+                        }));
+                    });
+                },
+            });
+        });
+
         $('#add-academic').on('click',function(){
             $('#academic-year-show').modal();
             //$( "#academic-year" ).focus();
@@ -164,6 +187,38 @@
         $('#add-program').on('click',function(){
             $('#program-show').modal();
             $( "#program" ).focus();
+        });
+        $('#add-level').on('click',function(){
+            var programs = $('#programs option');
+            var program = $('#form-level-create').find('#level-program');
+            $(program).empty();
+            $.each(programs,function(i,pro){
+                //console.log($(pro).val()); //value of option
+                $(program).append($("<option/>",{
+                    value: $(pro).val(),
+                    text: $(pro).text()
+                }));
+            });
+            $('#level-show').modal('show');
+        });
+        $('#form-level-create').on('submit',function(e){
+            e.preventDefault();
+            var data = $(this).serialize();
+            var url = $(this).attr('action');
+            console.log(data);
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: data,
+                success: function(data) {
+                    console.log(data);
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr);
+                    console.log(error);
+                    console.log(status);
+                }
+            });
         });
         $('.btn-save-academic').on('click',function(){
             var academicyear =  $('#academic-year').val();
@@ -188,7 +243,6 @@
                 }
             });
         });
-
         $('.btn-save-program').on('click',function(){
             var program = $('#program').val();
             var description = $('#description').val();
@@ -212,7 +266,6 @@
                     alert(xhr.responseText);
                 }
             });
-
         });
     </script>
 @endsection
