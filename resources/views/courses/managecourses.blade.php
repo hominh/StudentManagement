@@ -3,6 +3,10 @@
 @include('popup.academic')
 @include('popup.program')
 @include('popup.level')
+@include('popup.shift')
+@include('popup.time')
+@include('popup.batch')
+@include('popup.group')
     <div class="row">
         <div class="col-lg-12">
             <h3 class="page-header"><i class="fa fa-file-text-o"></i>Courses</h3>
@@ -19,8 +23,7 @@
                 <header class="panel-heading">
                     Manage course
                 </header>
-                <form class="form-horizontal" id="frm-create-course">
-
+                <form class="form-horizontal" id="frm-create-course" action="{!! route('storeclass') !!}" method="POST">
                     <div class="panel-body" style="border-bottom: 1px solid">
                         <div class="form-group">
                             <div class="col-sm-3">
@@ -69,10 +72,13 @@
                                 <label for"shift">Shift</label>
                                 <div class="input-group">
                                     <select class="form-control" name="shift" id="shift">
-
+                                        <option value="">---</option>
+                                        @foreach($shifts as $item)
+                                            <option value="{!! $item->id !!}">{!! $item->name !!}</option>
+                                        @endforeach()
                                     </select>
                                     <div class="input-group-addon">
-                                        <span class="fa fa-plus"></span>
+                                        <span class="fa fa-plus" id="add-shift"></span>
                                     </div>
                                 </div>
                             </div>
@@ -82,10 +88,13 @@
                                 <label for"time">Time</label>
                                 <div class="input-group">
                                     <select class="form-control" name="time" id="time">
-
+                                        <option value="">---</option>
+                                        @foreach($times as $item)
+                                            <option value="{!! $item->id !!}">{!! $item->name !!}</option>
+                                        @endforeach()
                                     </select>
                                     <div class="input-group-addon">
-                                        <span class="fa fa-plus"></span>
+                                        <span class="fa fa-plus" id="add-time"></span>
                                     </div>
                                 </div>
                             </div>
@@ -95,10 +104,13 @@
                                 <label for"batch">Batch</label>
                                 <div class="input-group">
                                     <select class="form-control" name="batch" id="batch">
-
+                                        <option value="">---</option>
+                                        @foreach($batches as $item)
+                                            <option value="{!! $item->id !!}">{!! $item->name !!}</option>
+                                        @endforeach()
                                     </select>
                                     <div class="input-group-addon">
-                                        <span class="fa fa-plus"></span>
+                                        <span class="fa fa-plus" id="add-batch"></span>
                                     </div>
                                 </div>
                             </div>
@@ -108,10 +120,13 @@
                                 <label for"group">Group</label>
                                 <div class="input-group">
                                     <select class="form-control" name="group" id="group">
-
+                                        <option value="">---</option>
+                                        @foreach($groups as $item)
+                                            <option value="{!! $item->id !!}">{!! $item->name !!}</option>
+                                        @endforeach()
                                     </select>
                                     <div class="input-group-addon">
-                                        <span class="fa fa-plus"></span>
+                                        <span class="fa fa-plus" id="add-group"></span>
                                     </div>
                                 </div>
                             </div>
@@ -154,9 +169,54 @@
         var user_id = $('input#user_id').val();
         $('#startdate').datepicker({
             changeMonth: true,
-            changeYear: true
+            changeYear: true,
+            dateFormat: 'yy-mm-dd'
         });
-
+        $('#enddate').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd'
+        });
+        $('#frm-create-course').on('submit',function(e){
+            e.preventDefault();
+            var url = $(this).attr('action');
+            var active = '1';
+            var academic_id = $('#academic').val();
+            var level = $('#level').val();
+            var shift = $('#shift').val();
+            var time = $('#time').val();
+            var batch = $('#batch').val();
+            var group = $('#group').val();
+            var startdate = $('#startdate').val();
+            var enddate = $('#enddate').val();
+            //console.log(data);
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: {
+                    'academic_id': academic_id,
+                    'level_id': level,
+                    'shift_id': shift,
+                    'time_id': time,
+                    'group_id': group,
+                    'batch_id': batch,
+                    'start_date': startdate,
+                    'end_date': enddate,
+                    'active': active,
+                    'user_id': user_id,
+                },
+                success: function(data) {
+                    console.log(data);
+                    alert('Success');
+                    $('#frm-create-course').trigger('reset');
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr);
+                    console.log(error);
+                    console.log(status);
+                }
+            });
+        });
         $('#frm-create-course #programs').on('change',function(){
             var program_id = $(this).val();
             var level = $('#level');
@@ -201,6 +261,107 @@
             });
             $('#level-show').modal('show');
         });
+
+        $('#add-shift').on('click',function(){
+            $('#shift-show').modal();
+        });
+
+        $('#add-time').on('click',function() {
+            $('#time-show').modal();
+        });
+
+        $('#add-batch').on('click',function() {
+            $('#batch-show').modal();
+        });
+
+        $('#add-group').on('click',function() {
+            $('#group-show').modal();
+        });
+
+        $('.btn-save-group').on('click',function(){
+            var groupname = $('#group-name').val();
+            $.ajax({
+                type: "POST",
+                url: '/manage/courses/storegroup',
+                data: {
+                    'user_id': user_id,
+                    'name': groupname
+                },
+                success: function(data) {
+                    console.log(data);
+                    alert('Success');
+                    $('#group-show').modal('toggle');
+                    $('#group').append($("<option/>",{
+                        value: data.id,
+                        text: data.name
+                    }));
+                }
+            });
+        });
+
+        $('.btn-save-batch').on('click',function(){
+            var batchname = $('#batch-name').val();
+            $.ajax({
+                type: "POST",
+                url: '/manage/courses/storebatch',
+                data: {
+                    'user_id': user_id,
+                    'name': batchname
+                },
+                success: function(data) {
+                    console.log(data);
+                    alert('Success');
+                    $('#batch-show').modal('toggle');
+                    $('#batch').append($("<option/>",{
+                        value: data.id,
+                        text: data.name
+                    }));
+                }
+            });
+        });
+
+        $('.btn-save-time').on('click',function() {
+            var timename = $('#time-name').val();
+            $.ajax({
+                type: "POST",
+                url: '/manage/courses/storetime',
+                data: {
+                    'user_id': user_id,
+                    'name': timename
+                },
+                success: function(data) {
+                    console.log(data);
+                    alert('Success');
+                    $('#time-show').modal('toggle');
+                    $('#time').append($("<option/>",{
+                        value: data.id,
+                        text: data.name
+                    }));
+                }
+            });
+        });
+
+        $('.btn-save-shift').on('click',function(){
+            var shiftname = $('#shift-name').val();
+            $.ajax({
+                type: "POST",
+                url: '/manage/courses/storeshift',
+                data: {
+                    'user_id': user_id,
+                    'name': shiftname
+                },
+                success: function(data) {
+                    console.log(data);
+                    alert('Success');
+                    $('#shift-show').modal('toggle');
+                    $('#shift').append($("<option/>",{
+                        value: data.id,
+                        text: data.name
+                    }));
+                }
+            });
+        });
+
         $('#form-level-create').on('submit',function(e){
             e.preventDefault();
             var data = $(this).serialize();

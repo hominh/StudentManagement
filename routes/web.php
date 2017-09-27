@@ -35,5 +35,10 @@ Route::group(['middleware'=>['authen','roles'],'roles'=>['admin']],function(){
     Route::post('/manage/courses/storeacademic',['as'=>'storeacademic','uses'=>'CourseController@storeAcademic']);
     Route::post('/manage/courses/storeprogram',['as'=>'storeprogram','uses'=>'CourseController@storeProgram']);
     Route::post('/manage/courses/storelevel',['as'=>'storelevel','uses'=>'CourseController@storeLevel']);
+    Route::post('/manage/courses/storeshift',['as'=>'storeshift','uses'=>'CourseController@storeShift']);
+    Route::post('/manage/courses/storetime',['as'=>'storetime','uses'=>'CourseController@storeTime']);
+    Route::post('/manage/courses/storebatch',['as'=>'storebatch','uses'=>'CourseController@storeBatch']);
+    Route::post('/manage/courses/storegroup',['as'=>'storegroup','uses'=>'CourseController@storeGroup']);
+    Route::post('/manage/courses/storeclass',['as'=>'storeclass','uses'=>'CourseController@storeClass']);
     Route::get('/manage/courses/showlevel',['as'=>'showlevel','uses'=>'CourseController@showLevel']);
 });
