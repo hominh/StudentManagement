@@ -28,9 +28,13 @@ class LoginController extends Controller
                 'active' => 1
             ]
         );
+
         if($auth == true) {
 
             return redirect()->route('/'); //login
+        }
+        else if($auth == false) {
+            echo "Login false";
         }
 
     }

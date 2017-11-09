@@ -27,7 +27,8 @@ class CourseController extends Controller
         $batches = Batch::all();
         $groups = Group::all();
         $times = Time::all();
-        return view('courses.managecourses',compact('programs','academics','shifts','batches','times','groups'));
+        $levels = Level::all();
+        return view('courses.managecourses',compact('programs','academics','shifts','batches','times','groups','levels'));
     }
 
     public function storeAcademic(Request $request) {
@@ -84,6 +85,57 @@ class CourseController extends Controller
     public function showLevel(Request $request) {
         if($request->ajax()) {
             return response(Level::where('program_id','=',$request->program_id)->get()); //find level by program
+        }
+    }
+
+    public function showClassInformation(Request $request) {
+        //return response($this->classInformation());
+        $criterial = array();
+        if($request->academic_id != "" && $request->program_id == "") {
+            $criterial = array('academics.id'=>$request->academic_id);
+        }
+        if($request->academic_id != "" && $request->program_id != "") {
+            $criterial = array('academics.id'=>$request->academic_id,'programs_id='=>$request->program_id);
+        }
+        /*else if($request->academic_id != "" && $request->program_id != "" && $request->level_id != "") {
+            $criterial = array('academics.id'=>$request->academic_id,'programs.id'=>$request->program_id,'level_id'=>$request->level_id);
+        }*/
+        $classes = $this->classInformation($criterial);
+        return view('popup.classinfo',compact('classes'));
+    }
+
+    public function classInformation($criterial) {
+        var_dump($criterial);
+        return DB::table('classes')
+                    ->join('academics','academics.id','=','classes.academic_id')
+                    ->join('levels','levels.id','=','classes.level_id')
+                    ->join('shifts','shifts.id','=','classes.shift_id')
+                    ->join('times','times.id','=','classes.time_id')
+                    ->join('batches','batches.id','=','classes.batch_id')
+                    ->join('groups','groups.id','=','classes.group_id')
+                    ->join('programs','levels.program_id','=','programs.id')//sai o cho join nay
+                    ->where($criterial)
+                    ->select('classes.*','academics.name as nameacademic','levels.name as namelevel','levels.program_id as program_id','levels.description as descriptionlevel','shifts.name as nameshift','times.name as nametime','groups.name as namegroup','batches.name as namebatch','programs.name as nameprogram')
+                    ->get();
+        //dd($classes);
+
+    }
+
+    public function delClass(Request $request) {
+        if($request->ajax()) {
+            MClass::destroy($request->id);
+        }
+    }
+
+    public function editClass(Request $request) {
+        if($request->ajax()) {
+            return response(MClass::find($request->id));
+        }
+    }
+
+    public function updateClass(Request $request) {
+        if($request->ajax()) {
+            return response(MClass::updateOrCreate(['id'=>$request->id],$request->all()));
         }
     }
 

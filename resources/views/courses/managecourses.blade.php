@@ -59,7 +59,10 @@
                                 <label for"level">Level</label>
                                 <div class="input-group">
                                     <select class="form-control" name="level" id="level">
-
+                                        <option value="">---</option>
+                                        @foreach($levels as $item)
+                                            <option value="{!! $item->id !!}">{!! $item->name !!}</option>
+                                        @endforeach()
                                     </select>
                                     <div class="input-group-addon">
                                         <span class="fa fa-plus" id="add-level"></span>
@@ -157,9 +160,18 @@
                     </div>
 
                     <div class="panel-footer">
-                        <button type="submit" class="btn btn-default btn-sm">Create course</button>
+                        <button type="submit" class="btn btn-info btn-sm">Create course</button>
+                        <button type="submit" class="btn btn-success btn-sm btn-update-class">Update course</button>
                     </div>
                 </form>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Class Information
+                    </div>
+                    <div class="panel-body" id="add-class-info">
+
+                    </div>
+                </div>
             </section>
         </div>
     </div>
@@ -167,6 +179,7 @@
 @section('script')
     <script type="text/javascript">
         var user_id = $('input#user_id').val();
+        showClassInfo($('#academic').val());
         $('#startdate').datepicker({
             changeMonth: true,
             changeYear: true,
@@ -177,6 +190,15 @@
             changeYear: true,
             dateFormat: 'yy-mm-dd'
         });
+
+        $('#academic').on('change', function() {
+            console.log( this.value );
+            showClassInfo(this.value);
+        })
+        $('#programs').on('change',function() {
+            showClassInfo(this.value);
+        });
+
         $('#frm-create-course').on('submit',function(e){
             e.preventDefault();
             var url = $(this).attr('action');
@@ -208,7 +230,9 @@
                 success: function(data) {
                     console.log(data);
                     alert('Success');
-                    $('#frm-create-course').trigger('reset');
+                    showClassInfo($('#academic').val());
+                    //$('#frm-create-course').trigger('reset');
+
                 },
                 error: function (xhr, status, error) {
                     console.log(xhr);
@@ -217,6 +241,88 @@
                 }
             });
         });
+
+        $('.btn-update-class').on('click',function(e){
+            e.preventDefault();
+            var classid = $(this).data('id');
+            var active = '1';
+            var academic_id = $('#academic').val();
+            var level = $('#level').val();
+            var shift = $('#shift').val();
+            var time = $('#time').val();
+            var batch = $('#batch').val();
+            var group = $('#group').val();
+            var startdate = $('#startdate').val();
+            var enddate = $('#enddate').val();
+            $.ajax({
+                type: "POST",
+                url: '/manage/courses/updateclass',
+                data: {
+                    'id': classid,
+                    'academic_id': academic_id,
+                    'level_id': level,
+                    'shift_id': shift,
+                    'time_id': time,
+                    'group_id': group,
+                    'batch_id': batch,
+                    'start_date': startdate,
+                    'end_date': enddate,
+                    'active': active,
+                    'user_id': user_id,
+                },
+                success:function(data) {
+                    console.log(data);
+                    showClassInfo($('#academic').val());
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr);
+                    console.log(error);
+                    console.log(status);
+                }
+            });
+        });
+
+        $(document).on('click','#edit-class',function(e){  //append dom
+            var classid = $(this).data('id');
+            $.ajax({
+                type: "GET",
+                url: '/manage/courses/editclass',
+                data: {
+                    id: classid
+                },
+                success:function(data) {
+                    console.log(data);
+                    //data.
+                    $('#academic').val(data.academic_id);
+                    //$('#programs').val()
+                    $('#level').val(data.level_id);
+                    $('#shift').val(data.shift_id);
+                    $('#time').val(data.time_id);
+                    $('#batch').val(data.batch_id);
+                    $('#group').val(data.group_id);
+                    $('#startdate').val(data.start_date);
+                    $('#enddate').val(data.end_date);
+                }
+            });
+        });
+        $(document).on('click','.del-class',function(e){  //append dom
+            var classid = $(this).val();
+            $.ajax({
+                type: "POST",
+                url: '/manage/courses/delclass',
+                data: {
+                    'id': classid,
+                },
+                success: function(data) {
+                    showClassInfo($('#academic').val());
+                }
+            });
+        });
+        //$('.del-class').on('click',function(){
+            //alert('1');
+            //alert($(this.data('id')));
+        //});
+
         $('#frm-create-course #programs').on('change',function(){
             var program_id = $(this).val();
             var level = $('#level');
@@ -238,6 +344,22 @@
                 },
             });
         });
+
+        function showClassInfo(academic_id) {
+            $.ajax({
+                type: "GET",
+                url: '/manage/courses/showclassinfo',
+                data: {
+
+                    academic_id: academic_id
+                },
+                success: function(data) {
+                    //console.log(data);
+                    $('#add-class-info').empty().append(data);
+                    mergeCommonRows($('#table-class-info'));
+                }
+            });
+        }
 
         $('#add-academic').on('click',function(){
             $('#academic-year-show').modal();
@@ -428,5 +550,27 @@
                 }
             });
         });
+
+        function mergeCommonRows(table) {
+            var firstcolumbreak = [];
+            $.each(table.find('th'),function(i){
+                var previous = null, celltoextend = null, rowspan = 1;
+                table.find("td:nth-child(" + i + ")").each(function(index,e){
+                    var jthis = $(this), content = jthis.text();
+                    if(previous == content && content != "" && $.inArray(index,firstcolumbreak) === -1) {
+                        jthis.addClass('hidden');
+                        celltoextend.attr("rowspan",(rowspan = rowspan + 1));
+                    }
+                    else {
+                        if(i ===1) firstcolumbreak.push(index);
+                        rowspan = 1;
+                        previous = content;
+                        celltoextend = jthis;
+                    }
+                });
+            });
+            $('td.hidden').remove();
+        }
+
     </script>
 @endsection

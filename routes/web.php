@@ -41,4 +41,12 @@ Route::group(['middleware'=>['authen','roles'],'roles'=>['admin']],function(){
     Route::post('/manage/courses/storegroup',['as'=>'storegroup','uses'=>'CourseController@storeGroup']);
     Route::post('/manage/courses/storeclass',['as'=>'storeclass','uses'=>'CourseController@storeClass']);
     Route::get('/manage/courses/showlevel',['as'=>'showlevel','uses'=>'CourseController@showLevel']);
+    Route::get('/manage/courses/showclassinfo',['as'=>'showclassinfo','uses'=>'CourseController@showClassInformation']);
+    Route::post('/manage/courses/delclass',['as'=>'delclass','uses'=>'CourseController@delClass']);
+    Route::get('/manage/courses/editclass',['as'=>'editclass','uses'=>'CourseController@editClass']);
+    Route::post('/manage/courses/updateclass',['as'=>'updateclass','uses'=>'CourseController@updateClass']);
+
+    Route::get('/student/register',['as'=>'student/register','uses'=>'StudentController@getStudentRegister']);
+    Route::post('/student/storestudent',['as'=>'storestudent','uses'=>'StudentController@postStudentRegister']);
+
 });
