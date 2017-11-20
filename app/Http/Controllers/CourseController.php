@@ -92,20 +92,25 @@ class CourseController extends Controller
         //return response($this->classInformation());
         $criterial = array();
         if($request->academic_id != "" && $request->program_id == "") {
-            $criterial = array('academics.id'=>$request->academic_id);
+            $criterial = array('classes.academic_id'=>$request->academic_id);
+        }
+        if($request->academic_id == "" && $request->program_id != "") {
+            $criterial = array('classes.program_id'=>$request->program_id);
         }
         if($request->academic_id != "" && $request->program_id != "") {
-            $criterial = array('academics.id'=>$request->academic_id,'programs_id='=>$request->program_id);
+            $criterial = array('academic.id'=>$request->academic_id,'classes.program_id'=>$request->program_id);
         }
         /*else if($request->academic_id != "" && $request->program_id != "" && $request->level_id != "") {
             $criterial = array('academics.id'=>$request->academic_id,'programs.id'=>$request->program_id,'level_id'=>$request->level_id);
         }*/
+        //dd($criterial);
+
+
         $classes = $this->classInformation($criterial);
         return view('popup.classinfo',compact('classes'));
     }
 
     public function classInformation($criterial) {
-        var_dump($criterial);
         return DB::table('classes')
                     ->join('academics','academics.id','=','classes.academic_id')
                     ->join('levels','levels.id','=','classes.level_id')
@@ -113,11 +118,11 @@ class CourseController extends Controller
                     ->join('times','times.id','=','classes.time_id')
                     ->join('batches','batches.id','=','classes.batch_id')
                     ->join('groups','groups.id','=','classes.group_id')
-                    ->join('programs','levels.program_id','=','programs.id')//sai o cho join nay
+                    ->join('programs','programs.id','=','classes.program_id')//sai o cho join nay
                     ->where($criterial)
                     ->select('classes.*','academics.name as nameacademic','levels.name as namelevel','levels.program_id as program_id','levels.description as descriptionlevel','shifts.name as nameshift','times.name as nametime','groups.name as namegroup','batches.name as namebatch','programs.name as nameprogram')
                     ->get();
-        //dd($classes);
+        dd($criterial);
 
     }
 

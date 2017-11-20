@@ -29,7 +29,7 @@
                             <div class="col-sm-3">
                                 <label for"academic">Academic year</label>
                                 <div class="input-group">
-                                    <select class="form-control" name="academic-year" id="academic">
+                                    <select class="form-control" name="academic_id" id="academic">
                                         <option value="">---</option>
                                         @foreach($academics as $item)
                                             <option value="{!! $item->id !!}">{!! $item->name !!}</option>
@@ -43,7 +43,7 @@
                             <div class="col-sm-4">
                                 <label for"program">Course</label>
                                 <div class="input-group">
-                                    <select class="form-control" name="program" id="programs">
+                                    <select class="form-control" name="program_id" id="programs">
                                         <option value="">---</option>
                                         @foreach($programs as $item)
                                             <option value="{!! $item->id !!}">{!! $item->name !!}</option>
@@ -196,7 +196,7 @@
             showClassInfo(this.value);
         })
         $('#programs').on('change',function() {
-            showClassInfo(this.value);
+
         });
 
         $('#frm-create-course').on('submit',function(e){
@@ -204,6 +204,7 @@
             var url = $(this).attr('action');
             var active = '1';
             var academic_id = $('#academic').val();
+            var program_id = $('#programs').val();
             var level = $('#level').val();
             var shift = $('#shift').val();
             var time = $('#time').val();
@@ -217,6 +218,7 @@
                 url: url,
                 data: {
                     'academic_id': academic_id,
+                    'program_id' : program_id,
                     'level_id': level,
                     'shift_id': shift,
                     'time_id': time,
@@ -343,14 +345,21 @@
                     });
                 },
             });
+            showClassInfo($('#academic').val());
         });
 
-        function showClassInfo(academic_id) {
-            $.ajax({
+        function showClassInfo(data) {
+            var data = $('#frm-create-course').serialize();
+
+
+            $.get("{{ route('showclassinfo') }}",data,function(data){
+                $('#add-class-info').empty().append(data);
+                mergeCommonRows($('#table-class-info'));
+            })
+            /*$.ajax({
                 type: "GET",
                 url: '/manage/courses/showclassinfo',
                 data: {
-
                     academic_id: academic_id
                 },
                 success: function(data) {
@@ -358,7 +367,8 @@
                     $('#add-class-info').empty().append(data);
                     mergeCommonRows($('#table-class-info'));
                 }
-            });
+            });*/
+
         }
 
         $('#add-academic').on('click',function(){
@@ -505,6 +515,7 @@
         });
         $('.btn-save-academic').on('click',function(){
             var academicyear =  $('#academic-year').val();
+            console.log($('#academic').val());
             $.ajax({
                 type:"POST",
                 url:'/manage/courses/storeacademic',
