@@ -62,7 +62,7 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <a data-toggle="collapse" data-parent="#accordion" href="#collapse1" style="text-decoration: none;">Choose academic</a>
-                        <a href="#" class="pull-right"><i class="fa fa-plus"></i></a>
+                        <a href="#" class="pull-right" id="show-class"><i class="fa fa-plus"></i></a>
                     </div>
                     <div id="collapse1" class="panel-collapse collapse in">
                         <div class="panel-body academic-detail">
@@ -78,9 +78,13 @@
                     <b><i class="fa fa-apple"></i>Student information</b>
                 </div>
                 <div class="panel-body" style="padding-bottom: 4px;">
-                    <form action="{!! route('storestudent') !!}" method="post" id="frm-create-student">
+                    <form action="{!! route('storestudent') !!}" method="post" id="frm-create-student" enctype="multipart/form-data">
+
                          {{ csrf_field() }}
                         <input type="hidden" name="class_id" id="class_id" />
+                        <input type="hidden" name="user_id" value="{{Auth::user()->id}}" id="user_id" />
+                        <input type="hidden" name="dateregisted" value="{{ date('Y-m-d') }}" id="dateregisted" />
+
                         <div class="row">
                             <div class="col-lg-9 col-md-9 col-sm-9">
                                 <div>
@@ -246,18 +250,12 @@
                                         <input type="text" name="province" id="province" class="form-control" required />
                                     </div>
                                 </div>
-                                <div class="col-md-12">
+                                <div class="col-md-11">
                                     <div class="form-group">
                                         <label for="current_address">Current address</label>
                                         <input type="text" name="current_address" id="current_address" class="form-control" required />
                                     </div>
                                 </div>
-                                <!--<div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="current_address_study">Current Address Study</label>
-                                        <input type="text" name="current_address_study" id="current_address_study" class="form-control" required />
-                                    </div>
-                                </div>!-->
                             </div>
                         </div>
                         <div class="panel-footer">
@@ -268,15 +266,88 @@
             </div>
         </div>
     </div>
+    @include('popup.class')
 @endsection
 @section('script')
     <script type="text/javascript">
+        $(document).on('click','#edit-class',function(e) {
+            e.preventDefault();
+            $('#class_id').val('');
+
+            $('.academic-detail p').text($(this).text());
+            $('#class-show').modal('hide');
+            $('#class_id').val($(this).data('id'));
+        });
+        $('#academic').on('change', function() {
+            console.log( this.value );
+            showClassInfo(this.value);
+        })
+        $('#programs').on('change',function() {
+            showClassInfo(this.value);
+        });
+
+
+        function showClassInfo(data) {
+            var data = $('#frm-view-course').serialize();
+
+
+            $.get("{{ route('showclassinfo') }}",data,function(data){
+                $('#add-class-info').empty().append(data);
+                mergeCommonRows($('#table-class-info'));
+            })
+            /*$.ajax({
+                type: "GET",
+                url: '/manage/courses/showclassinfo',
+                data: {
+                    academic_id: academic_id
+                },
+                success: function(data) {
+                    //console.log(data);
+                    $('#add-class-info').empty().append(data);
+                    mergeCommonRows($('#table-class-info'));
+                }
+            });*/
+
+        }
+
+
+        $('#frm-view-course #programs').on('change',function(){
+            var program_id = $(this).val();
+            var level = $('#level');
+            $(level).empty();
+            $.ajax({
+                type: "GET",
+                url:'/manage/courses/showlevel',
+                data: {
+                    program_id: program_id
+                },
+                success: function(data) {
+                    console.log(data);
+                    $.each(data,function(i,l){
+                        $(level).append($("<option/>",{
+                            value: l.id,
+                            text: l.name
+                        }));
+                    });
+                },
+            });
+            showClassInfo($);
+        });
+
+
+        $('#show-class').on('click',function(e){
+            e.preventDefault();
+            $('#class-show').modal('show');
+        });
+
         $('#browse_file').on('click',function(){
             $('#photo').click();
         });
         $('#photo').on('change',function(){
             showFile(this,'#showPhoto')
-        })
+        });
+
+
         function showFile(fileinput,img,showname){
             if(fileinput.files[0]) {
                 var reader = new FileReader();
@@ -287,5 +358,27 @@
             }
             $(showname).text(fileinput.files[0].name);
         }
+
+        function mergeCommonRows(table) {
+            var firstcolumbreak = [];
+            $.each(table.find('th'),function(i){
+                var previous = null, celltoextend = null, rowspan = 1;
+                table.find("td:nth-child(" + i + ")").each(function(index,e){
+                    var jthis = $(this), content = jthis.text();
+                    if(previous == content && content != "" && $.inArray(index,firstcolumbreak) === -1) {
+                        jthis.addClass('hidden');
+                        celltoextend.attr("rowspan",(rowspan = rowspan + 1));
+                    }
+                    else {
+                        if(i ===1) firstcolumbreak.push(index);
+                        rowspan = 1;
+                        previous = content;
+                        celltoextend = jthis;
+                    }
+                });
+            });
+            $('td.hidden').remove();
+        }
+
     </script>
 @endsection

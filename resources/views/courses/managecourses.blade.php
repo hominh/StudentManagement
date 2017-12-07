@@ -24,6 +24,7 @@
                     Manage course
                 </header>
                 <form class="form-horizontal" id="frm-create-course" action="{!! route('storeclass') !!}" method="POST">
+                    <input type="hidden" name="class_id" value="" id="class_id">
                     <div class="panel-body" style="border-bottom: 1px solid">
                         <div class="form-group">
                             <div class="col-sm-3">
@@ -196,7 +197,7 @@
             showClassInfo(this.value);
         })
         $('#programs').on('change',function() {
-
+            showClassInfo(this.value);
         });
 
         $('#frm-create-course').on('submit',function(e){
@@ -246,8 +247,10 @@
 
         $('.btn-update-class').on('click',function(e){
             e.preventDefault();
-            var classid = $(this).data('id');
+            var classid = $('#class_id').val();
+            console.log(classid);
             var active = '1';
+
             var academic_id = $('#academic').val();
             var level = $('#level').val();
             var shift = $('#shift').val();
@@ -274,6 +277,7 @@
                 },
                 success:function(data) {
                     console.log(data);
+                    alert('Update class success');
                     showClassInfo($('#academic').val());
                 },
                 error: function (xhr, status, error) {
@@ -295,8 +299,9 @@
                 success:function(data) {
                     console.log(data);
                     //data.
+                    $('#class_id').val(classid);
                     $('#academic').val(data.academic_id);
-                    //$('#programs').val()
+                    $('#programs').val(data.program_id);
                     $('#level').val(data.level_id);
                     $('#shift').val(data.shift_id);
                     $('#time').val(data.time_id);
@@ -345,7 +350,7 @@
                     });
                 },
             });
-            showClassInfo($('#academic').val());
+            showClassInfo($);
         });
 
         function showClassInfo(data) {
@@ -515,7 +520,6 @@
         });
         $('.btn-save-academic').on('click',function(){
             var academicyear =  $('#academic-year').val();
-            console.log($('#academic').val());
             $.ajax({
                 type:"POST",
                 url:'/manage/courses/storeacademic',

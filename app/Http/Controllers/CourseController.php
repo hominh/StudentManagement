@@ -98,12 +98,12 @@ class CourseController extends Controller
             $criterial = array('classes.program_id'=>$request->program_id);
         }
         if($request->academic_id != "" && $request->program_id != "") {
-            $criterial = array('academic.id'=>$request->academic_id,'classes.program_id'=>$request->program_id);
+            $criterial = array('classes.academic_id'=>$request->academic_id,'classes.program_id'=>$request->program_id);
         }
         /*else if($request->academic_id != "" && $request->program_id != "" && $request->level_id != "") {
             $criterial = array('academics.id'=>$request->academic_id,'programs.id'=>$request->program_id,'level_id'=>$request->level_id);
         }*/
-        //dd($criterial);
+        //var_dump($criterial);
 
 
         $classes = $this->classInformation($criterial);
