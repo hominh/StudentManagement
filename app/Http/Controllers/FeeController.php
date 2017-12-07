@@ -15,4 +15,8 @@
         public function getPayment() {
             return view('fee.searchpayment');
         }
+
+        public function postSearchPayment() {
+            
+        }
     }
